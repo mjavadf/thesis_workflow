@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.sqlite3
+*.db
+.env
+.venv/
+venv/
+ENV/
+env/
+*.bak
+
+# VSCode
+.vscode/
+.history/
+.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Others
+*.swp
+*.swo
+
+rspace_to_omekas/config_lab.json

@@ -1,0 +1,259 @@
+prefixes:
+  crm:   "http://www.cidoc-crm.org/cidoc-crm/"
+  dig:   "http://www.cidoc-crm.org/cidoc-crm-dig/"
+  rdf:   "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  rdfs:  "http://www.w3.org/2000/01/rdf-schema#"
+  prov:  "http://www.w3.org/ns/prov#"
+  ldp:   "http://www.w3.org/ns/ldp#"
+  ebucore: "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#"
+  premis:  "http://www.loc.gov/premis/rdf/v1#"
+  exif:    "http://wwww3org/2003/12/exif/ns#"
+  ex:   "http://www.researchspace.org/ontology/"
+
+# Javad Transformation Object – ResearchSpace-aligned mapping catalogue
+
+rules:
+
+  # ────────────────────────────────────────────────
+  # Fedora creation / modification
+  # ────────────────────────────────────────────────
+  - id: fedora_created
+    source_predicate: "http://fedora.info/definitions/v4/repository#created"
+    target_pattern: |
+      _:evt a dig:D7_Digital_Machine_Event ;
+          crm:P4_has_time-span [
+              a crm:E52_Time-Span ;
+              crm:P82a_begin_of_the_begin ?o ;
+              crm:P82b_end_of_the_end ?o
+          ] ;
+          crm:P94_has_created ?s .
+      ?s dig:L11i_was_output_of _:evt .
+
+  - id: fedora_lastModified
+    source_predicate: "http://fedora.info/definitions/v4/repository#lastModified"
+    target_pattern: |
+      ?s crm:P4_has_time-span [
+          a crm:E52_Time-Span ;
+          crm:P82a_begin_of_the_begin ?o ;
+          crm:P82b_end_of_the_end ?o
+      ] .
+
+  # -----
+  #type
+
+  # http://www.w3.org/ns/ldp#RDFSource -> http://www.cidoc-crm.org/cidoc-crm/E31_Document , http://www.cidoc-crm.org/cidoc-crm/E24_Physical_Man-Made_Thing
+  # - id: ldp_rdfsource
+  #   source_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+  #   source_object: "http://www.w3.org/ns/ldp#RDFSource"
+  #   target_pattern: |
+  #     ?s a crm:E31_Document , crm:E24_Physical_Man-Made_Thing .
+
+
+  # http://www.w3.org/ns/ldp#NonRDFSource -> http://www.researchspace.org/ontology/EX_Digital_Image
+  # ldp:contains -> http://www.cidoc-crm.org/cidoc-crm/P138i_has_representation 
+  # ────────────────────────────────────────────────
+  # Binary size
+  # ────────────────────────────────────────────────
+  - id: premis_size
+    source_predicate: "http://www.loc.gov/premis/rdf/v1#hasSize"
+    target_pattern: |
+      ?s dig:L43_has_byte_size ?o .
+
+  # ────────────────────────────────────────────────
+  # MIME type
+  # ────────────────────────────────────────────────
+  - id: ebucore_mime
+    source_predicate: "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#hasMimeType"
+    target_pattern: |
+      ?s crm:P2_has_type [
+          a crm:E55_Type ;
+          crm:P1_is_identified_by [
+              a crm:E41_Appellation ;
+              rdf:value ?o
+          ]
+      ] .
+
+  # ────────────────────────────────────────────────
+  # EXIF / TIFF metadata
+  # ────────────────────────────────────────────────
+
+  # Dimensions
+  - id: exif_width
+    source_predicate: "http://wwww3org/2003/12/exif/ns#imageWidth"
+    target_pattern: |
+      ?s dig:L57_has_pixel_width ?o .
+
+  - id: exif_height
+    source_predicate: "http://wwww3org/2003/12/exif/ns#imageLength"
+    target_pattern: |
+      ?s dig:L56_has_pixel_height ?o .
+
+  # Resolution
+  - id: exif_xres
+    source_predicate: "http://wwww3org/2003/12/exif/ns#xResolution"
+    target_pattern: |
+      ?s dig:L58_has_x_resolution ?o .
+
+  - id: exif_yres
+    source_predicate: "http://wwww3org/2003/12/exif/ns#yResolution"
+    target_pattern: |
+      ?s dig:L59_has_y_resolution ?o .
+
+  - id: exif_resunit
+    source_predicate: "http://wwww3org/2003/12/exif/ns#resolutionUnit"
+    target_pattern: |
+      ?s crm:P2_has_type [
+          a crm:E55_Type ;
+          rdf:value ?o
+      ] .
+
+  # Bit depth
+  - id: exif_bits
+    source_predicate: "http://wwww3org/2003/12/exif/ns#bitsPerSample"
+    target_pattern: |
+      ?s dig:L54_has_bit_depth ?o .
+
+  # Scanner / capture info
+  - id: exif_document_name
+    source_predicate: "http://wwww3org/2003/12/exif/ns#documentName"
+    target_pattern: |
+      ?s crm:P1_is_identified_by [
+          a crm:E42_Identifier ;
+          rdf:value ?o
+      ] .
+
+  - id: exif_make
+    source_predicate: "http://wwww3org/2003/12/exif/ns#make"
+    target_pattern: |
+      ?s dig:L16_used_hardware [
+          crm:P2_has_type [
+              a crm:E55_Type ;
+              rdf:value ?o
+          ]
+      ] .
+
+  - id: exif_model
+    source_predicate: "http://wwww3org/2003/12/exif/ns#model"
+    target_pattern: |
+      ?s dig:L16_used_hardware [
+          crm:P1_is_identified_by [
+              a crm:E41_Appellation ;
+              rdf:value ?o
+          ]
+      ] .
+
+  - id: exif_software
+    source_predicate: "http://wwww3org/2003/12/exif/ns#software"
+    target_pattern: |
+      ?s dig:L14_used_software [
+          crm:P1_is_identified_by [
+              a crm:E41_Appellation ;
+              rdf:value ?o
+          ]
+      ] .
+
+  # Creator / artist
+  - id: exif_artist
+    source_predicate: "http://wwww3org/2003/12/exif/ns#artist"
+    target_pattern: |
+      ?s crm:P94_has_created [
+          a crm:E39_Actor ;
+          rdfs:label ?o
+      ] .
+
+  # Compression
+  - id: exif_compression
+    source_predicate: "http://wwww3org/2003/12/exif/ns#compression"
+    target_pattern: |
+      ?s crm:P2_has_type [
+          a crm:E55_Type ;
+          rdf:value ?o
+      ] .
+
+  # Orientation
+  - id: exif_orientation
+    source_predicate: "http://wwww3org/2003/12/exif/ns#orientation"
+    target_pattern: |
+      ?s crm:P2_has_type [
+          a crm:E55_Type ;
+          rdf:value ?o
+      ] .
+
+  # Page number
+  - id: exif_page
+    source_predicate: "http://wwww3org/2003/12/exif/ns#pageNumber"
+    target_pattern: |
+      ?s crm:P48_has_preferred_identifier [
+          a crm:E42_Identifier ;
+          rdf:value ?o
+      ] .
+
+  # Capture datetime
+  - id: exif_datetime
+    source_predicate: "http://wwww3org/2003/12/exif/ns#dateTime"
+    target_pattern: |
+      ?s crm:P4_has_time-span [
+          a crm:E52_Time-Span ;
+          crm:P82a_begin_of_the_begin ?o ;
+          crm:P82b_end_of_the_end ?o
+      ] .
+
+  # ────────────────────────────────────────────────
+  # TODO
+  # ────────────────────────────────────────────────
+    # rdf:type + ldp:RDFSource  →  E31 + E24
+  - id: ldp_rdfsource_is_document_and_manmade
+    source_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+    object_equals:    "http://www.w3.org/ns/ldp#RDFSource"
+    target_pattern: |
+      ?s a crm:E31_Document .
+      ?s a crm:E24_Physical_Man-Made_Thing .
+
+  # rdf:type + ldp:NonRDFSource  →  EX_Digital_Image
+  - id: ldp_nonrdfsource_is_digital_image
+    source_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+    object_equals:    "http://www.w3.org/ns/ldp#NonRDFSource"
+    target_pattern: |
+      ?s a ex:EX_Digital_Image .
+
+  # ldp:contains  →  P138i_has_representation
+  - id: ldp_contains_to_representation
+    source_predicate: "http://www.w3.org/ns/ldp#contains"
+    target_pattern: |
+      ?s crm:P138i_has_representation ?o .
+
+  - id: dc_title_label
+    source_predicate: "http://purl.org/dc/elements/1.1/title"
+    target_pattern: |
+      ?s rdfs:label ?o .
+      ?s crm:P102_has_title [
+          a crm:E35_Title ;
+          rdf:value ?o
+      ] .
+
+  - id: dcterms_title_label
+    source_predicate: "http://purl.org/dc/terms/title"
+    target_pattern: |
+      ?s rdfs:label ?o .
+      ?s crm:P102_has_title [
+          a crm:E35_Title ;
+          rdf:value ?o
+      ] .
+
+  - id: binary_created_prov
+    source_predicate: "http://fedora.info/definitions/v4/repository#created"
+    target_pattern: |
+      ?s prov:generatedAtTime ?o .
+      ?s prov:wasAttributedTo <http://www.researchspace.org/resource/user/admin> .
+      ?s a ex:EX_File, prov:Entity, ldp:Resource .
+
+  - id: ebucore_filename_px_name_and_label
+    source_predicate: "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#filename"
+    target_pattern: |
+      ?s ex:PX_has_file_name ?o .
+      ?s rdfs:label ?o .
+
+  - id: ebucore_mime_px_media_type
+    source_predicate: "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#hasMimeType"
+    target_pattern: |
+      ?s ex:PX_has_media_type ?o .

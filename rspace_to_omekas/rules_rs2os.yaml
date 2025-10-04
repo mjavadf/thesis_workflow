@@ -1,0 +1,41 @@
+# rules_rs2os.yaml
+prefixes:
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#"
+  crm:  "http://www.cidoc-crm.org/cidoc-crm/"
+  rs:   "http://www.researchspace.org/ontology/"
+
+root:
+  subject_var: "?s"
+  class: "crm:E24_Physical_Man-Made_Thing"
+  order_by: "?s"
+
+fields:
+  # 1) Title (label) — single value
+  - id: "label"
+    where:
+      - "?s rdfs:label ?label_ ."
+    select:
+      expr: "SAMPLE(?label_)"
+      as: "?label"
+    to:
+      property: "dcterms:title"
+
+  # 2) Identifier — just the URI string
+  - id: "identifier"
+    select:
+      expr: "STR(?s)"
+      as: "?identifier"
+    to:
+      property: "dcterms:identifier"
+
+  # 3) Image paths — many values concatenated
+  - id: "image_paths"
+    where:
+      - "?s crm:P138i_has_representation ?img ."
+      - "?img rs:PX_has_file_name ?path_ ."
+    select:
+      expr: 'GROUP_CONCAT(DISTINCT ?path_; separator="||")'
+      as: "?image_paths"
+    optional: true
+    to:
+      special: "o:media"     # handled in code (upload)

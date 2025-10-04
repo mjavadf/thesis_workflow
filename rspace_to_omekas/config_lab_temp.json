@@ -1,0 +1,8 @@
+{
+  "apiURL": "https://lab.ficlit.unibo.it/javad/api",
+  "key_identity": "[key_identity]",
+  "key_credential": "[key_credential]",
+  "sparqlEndpoint": "http://137.204.64.40:10215/blazegraph/namespace/kb/sparql",
+  "mediaRootDir": "/home/tech/RSpace/researchspace/data/images/file"
+  
+}
