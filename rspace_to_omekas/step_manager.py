@@ -1,4 +1,3 @@
-# step_manager.py
 import os
 import json
 
@@ -56,7 +55,9 @@ def main():
                                 media_status = attach_media(apiURL, params, item_id, jpg_path, fields.get("dcterms:title"))
                                 if media_status is True:
                                     attached_media += 1
-                                else: # False or 'skipped'
+                                elif media_status == "skipped":
+                                    skipped_media += 1
+                                else:
                                     skipped_media += 1
                             else:
                                 skipped_media += 1
