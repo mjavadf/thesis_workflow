@@ -20,6 +20,7 @@ def main():
     query = build_sparql(rules)
     rows = run_query(query)
 
+    processed_count = 0
     for r in rows:
         uri = r["s"]["value"]
         fields = {}
@@ -31,10 +32,9 @@ def main():
             if val and prop:
                 fields[prop] = val
 
-        # Create or update item
         item_id = create_or_update_item(uri, fields)
-
         if item_id:
+            processed_count += 1
             for f in rules["fields"]:
                 special = f["to"].get("special") if "to" in f else None
                 if special == "o:media":
@@ -47,6 +47,7 @@ def main():
                             if jpg_path:
                                 attach_media(apiURL, params, item_id, jpg_path, fields.get("dcterms:title"))
 
+    print(f"Finished: {processed_count} resources processed in RS->Omeka phase.")
     print("Done.")
 
 if __name__ == "__main__":
