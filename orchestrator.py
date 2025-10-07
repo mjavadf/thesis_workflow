@@ -12,7 +12,7 @@ python orchestrator.py --phase fedora_to_rspace `
   --rules-file  rules.yaml `
   --out-dir     sparql_out `
   --named-graph http://datavault.ficlit.unibo.it/graph/microfilm `
-  --images-dir  "E:\Workspace\Ficlit-ETL\researchspace-docker\researchspace\data\images\file" `
+  --images-dir  "E:\\Workspace\\Ficlit-ETL\\researchspace-docker\\researchspace\\data\\images\\file" `
   --username    [auth] `
   --password    [auth] `
   --chunk-size  5000 `

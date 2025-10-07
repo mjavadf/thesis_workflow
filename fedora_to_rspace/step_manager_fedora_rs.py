@@ -19,7 +19,7 @@ python step_manager_fedora_rs.py \
   --rules-file  rules.yaml \
   --out-dir     sparql_out \
   --named-graph http://datavault.ficlit.unibo.it/graph/microfilm \
-  --images-dir  E:\Workspace\Ficlit-ETL\researchspace-docker\researchspace\data\images\file \
+  --images-dir  E:\\Workspace\\Ficlit-ETL\\researchspace-docker\\researchspace\\data\\images\\file \
   --username    [Auth_user] \
   --password    [Auth_pass] \
   --chunk-size  5000 \
@@ -33,7 +33,7 @@ python step_manager_fedora_rs.py `
   --rules-file  rules.yaml `
   --out-dir     sparql_out `
   --named-graph http://datavault.ficlit.unibo.it/graph/microfilm `
-  --images-dir  "E:\Workspace\Ficlit-ETL\researchspace-docker\researchspace\data\images\file" `
+  --images-dir  "E:\\Workspace\\Ficlit-ETL\\researchspace-docker\\researchspace\\data\\images\\file" `
   --username    [Auth_user] `
   --password    [Auth_pass] `
   --chunk-size  5000 `
