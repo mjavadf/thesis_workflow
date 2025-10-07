@@ -12,27 +12,27 @@ python orchestrator.py --phase fedora_to_rspace `
   --rules-file  rules.yaml `
   --out-dir     sparql_out `
   --named-graph http://datavault.ficlit.unibo.it/graph/microfilm `
-  --images-dir  "E:\\Workspace\\Ficlit-ETL\\researchspace-docker\\researchspace\\data\\images\\file" `
+  --images-dir  "/home/tech/RSpace/researchspace/data/images/file" `
   --username    [auth] `
   --password    [auth] `
   --chunk-size  5000 `
-  --sparql-endpoint http://localhost:10215/blazegraph/namespace/kb/sparql `
+  --sparql-endpoint http://137.204.64.40:10215/blazegraph/namespace/kb/sparql `
   --max-resources 5 -v
   
-python orchestrator.py --phase fedora_to_rspace \
+python3 orchestrator.py --phase fedora_to_rspace \
   --fedora-base https://datavault.ficlit.unibo.it/repo/rest \
-  --root-path   UBOBU/MICROFILM/UBO8306198/402155/ \
-  --rules-file  fedora_to_rspace/rules.yaml \
-  --out-dir     fedora_to_rspace/sparql_out \
+  --root-path UBOBU/MICROFILM/UBO8306198/402155/ \
+  --rules-file rules.yaml \
+  --out-dir sparql_out \
   --named-graph http://datavault.ficlit.unibo.it/graph/microfilm \
-  --images-dir  "/home/tech/RSpace/researchspace/data/images/file" \
-  --username    [auth] \
-  --password    [auth] \
-  --chunk-size  5000 \
-  --sparql-endpoint http://137.204.64.40:10215/blazegraph/#namespaces \
+  --images-dir /home/tech/RSpace/researchspace/data/images/file \
+  --username auth \
+  --password auth \
+  --chunk-size 5000 \
+  --sparql-endpoint http://137.204.64.40:10215/blazegraph/namespace/kb/sparql \
   --max-resources 5 -v
 
-python orchestrator.py --phase rspace_to_omekas \
+python3 orchestrator.py --phase rspace_to_omekas \
   --rules-file rspace_to_omekas/rules_rs2os.yaml \
 """
 
