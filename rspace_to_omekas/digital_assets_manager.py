@@ -1,4 +1,3 @@
-# digital_assets_manager.py
 import json
 from pathlib import Path
 import requests
@@ -30,6 +29,17 @@ def attach_media(apiURL, params, item_id, filepath, title=None):
         print(f"File not found: {filepath}")
         return
 
+    # --- check if item already has media
+    try:
+        check = requests.get(f"{apiURL}items/{item_id}?embed=media", params=params, verify=False)
+        if check.status_code == 200:
+            data = check.json()
+            if "o:media" in data and len(data["o:media"]) > 0:
+                print(f"✓ Skipping upload: item {item_id} already has media attached")
+                return
+    except Exception as e:
+        print(f"   [Warning] Could not check media for item {item_id}: {e}")
+
     title = title or path.stem
     data_item = {
         "o:ingester": "upload",
@@ -51,5 +61,7 @@ def attach_media(apiURL, params, item_id, filepath, title=None):
     response = requests.post(f"{apiURL}media", params=params, files=media_upload, verify=False)
     if response.status_code in (200, 201):
         print(f"   Media attached: {path.name}")
+        return True
     else:
         print(f"   Error uploading {path.name}: {response.status_code}")
+        return False

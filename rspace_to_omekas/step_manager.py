@@ -20,7 +20,11 @@ def main():
     query = build_sparql(rules)
     rows = run_query(query)
 
-    processed_count = 0
+    inserted_items = 0
+    updated_items = 0
+    attached_media = 0
+    skipped_media = 0
+
     for r in rows:
         uri = r["s"]["value"]
         fields = {}
@@ -32,9 +36,13 @@ def main():
             if val and prop:
                 fields[prop] = val
 
-        item_id = create_or_update_item(uri, fields)
+        item_id, status = create_or_update_item(uri, fields)
+        if status == "created":
+            inserted_items += 1
+        elif status == "updated":
+            updated_items += 1
+
         if item_id:
-            processed_count += 1
             for f in rules["fields"]:
                 special = f["to"].get("special") if "to" in f else None
                 if special == "o:media":
@@ -45,9 +53,19 @@ def main():
                             fullpath = os.path.join(mediaRootDir, p.replace("!", os.sep))
                             jpg_path = convert_to_jpg(fullpath)
                             if jpg_path:
-                                attach_media(apiURL, params, item_id, jpg_path, fields.get("dcterms:title"))
+                                media_status = attach_media(apiURL, params, item_id, jpg_path, fields.get("dcterms:title"))
+                                if media_status is True:
+                                    attached_media += 1
+                                else: # False or 'skipped'
+                                    skipped_media += 1
+                            else:
+                                skipped_media += 1
 
-    print(f"Finished: {processed_count} resources processed in RS->Omeka phase.")
+    print("\n--- Finished ---")
+    print(f"Inserted items: {inserted_items}")
+    print(f"Updated items: {updated_items}")
+    print(f"Attached media: {attached_media}")
+    print(f"Skipped media: {skipped_media}")
     print("Done.")
 
 if __name__ == "__main__":

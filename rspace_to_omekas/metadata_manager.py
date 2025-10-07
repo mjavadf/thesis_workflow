@@ -139,16 +139,16 @@ def create_or_update_item(uri, fields):
         response = requests.patch(url, params=params, data=json.dumps(data), headers=headers, verify=False)
         if response.status_code in (200, 201):
             print(f"Updated item {item_id} ({fields.get('dcterms:title', uri)})")
-            return item_id
+            return item_id, "updated"
         else:
             print(f"Error updating {uri}: {response.status_code} - {response.text}")
-            return None
+            return None, None
     else:
         response = requests.post(f"{apiURL}items", params=params, data=json.dumps(data), headers=headers, verify=False)
         if response.status_code in (200, 201):
             item_id = response.json().get("o:id")
             print(f"Created item {item_id} ({fields.get('dcterms:title', uri)})")
-            return item_id
+            return item_id, "created"
         else:
             print(f"Error creating {uri}: {response.status_code} - {response.text}")
-            return None
+            return None, None
