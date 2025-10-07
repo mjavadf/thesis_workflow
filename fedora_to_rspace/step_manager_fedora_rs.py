@@ -97,14 +97,20 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     files_txt = out_dir / "files.txt"
 
+    here = Path(__file__).resolve().parent
+    metadata_script = here / "metadata_manager.py"
+    digital_script = here / "digital_asset_manager.py"
+    rules_path = (here / args.rules_file).resolve() if not Path(args.rules_file).is_absolute() else Path(args.rules_file)
+    out_dir_abs = out_dir.resolve()
+
     # 1. Run metadata pipeline
     run_cmd(
         [
-            sys.executable, "metadata_manager.py",
+            sys.executable, str(metadata_script),
             "--fedora-base", args.fedora_base,
             "--root-path", args.root_path,
-            "--rules-file", args.rules_file,
-            "--out-dir", str(out_dir),
+            "--rules-file", str(rules_path),
+            "--out-dir", str(out_dir_abs),
             "--named-graph", args.named_graph,
             "--username", args.username,
             "--password", args.password,
@@ -116,7 +122,7 @@ def main():
 
     # 2. If SPARQL endpoint is given, push generated insert-*.rq
     if args.sparql_endpoint:
-        push_to_sparql(args.sparql_endpoint, out_dir)
+        push_to_sparql(args.sparql_endpoint, out_dir_abs)
 
     if not files_txt.exists():
         sys.exit("✗ No files.txt found (did metadata_manager.py produce it?)")
@@ -124,8 +130,8 @@ def main():
     # 3. Run digital assets pipeline
     run_cmd(
         [
-            sys.executable, "digital_asset_manager.py",
-            "--files", str(files_txt),
+            sys.executable, str(digital_script),
+            "--files", str(files_txt.resolve()),
             "--out-dir", args.images_dir,
             "--username", args.username,
             "--password", args.password,

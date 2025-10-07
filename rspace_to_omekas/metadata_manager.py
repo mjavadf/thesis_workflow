@@ -51,11 +51,13 @@ def build_sparql(rules: dict) -> str:
                 where_parts.append(f"OPTIONAL {{\n    {wtriples}\n}}")
 
     select_line = " ".join(select_parts)
+    joined_where = "\n  ".join(where_parts)
+
     query = f"""{pfx}
 
 SELECT {select_line}
 WHERE {{
-  {'\n  '.join(where_parts)}
+  {joined_where}
 }}
 GROUP BY {s}
 ORDER BY {order_by}
