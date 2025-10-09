@@ -12,8 +12,9 @@ import tracemalloc
 import csv
 import os
 import logging
+import subprocess
+import re
 from collections import Counter
-from orchestrator import run_phase
 
 # Configuration 
 LOG_DIR = os.path.join(os.getcwd(), "logs")
@@ -39,25 +40,65 @@ def measure_performance(phase_name: str, extra_args=""):
     tracemalloc.start()
     errors = Counter()
     processed = 0
+    inserted = updated = attached = skipped = 0
+
+    cmd = ["python3", "orchestrator.py", "--phase", phase_name] + extra_args.split()
+    logging.info(f"Running command: {' '.join(cmd)}")
 
     try:
-        # Run the phase through orchestrator
-        result = run_phase(phase_name, extra_args.split())
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=os.getcwd()
+        )
+        logs = result.stdout.splitlines()
 
-        # Try to infer processed count from results
-        if isinstance(result, dict) and "processed" in result:
-            processed = result.get("processed", 0)
+        # Parse Omeka S summary lines if present
+        for line in logs:
+            if m := re.search(r"Inserted items:\s*(\d+)", line):
+                inserted = int(m.group(1))
+            elif m := re.search(r"Updated items:\s*(\d+)", line):
+                updated = int(m.group(1))
+            elif m := re.search(r"Attached media:\s*(\d+)", line):
+                attached = int(m.group(1))
+            elif m := re.search(r"Skipped media:\s*(\d+)", line):
+                skipped = int(m.group(1))
+
+        # Parse Fedora→ResearchSpace processed count from logs
+        if "fedora" in phase_name:
+            fedora_match = None
+            for line in logs:
+                if m := re.search(r"Processed\s+(\d+)\s+resources", line):
+                    fedora_match = int(m.group(1))
+                    break
+                elif m := re.search(r"Finished:\s*(\d+)\s*resources", line):
+                    fedora_match = int(m.group(1))
+                    break
+                elif m := re.search(r"'processed':\s*(\d+)", line):
+                    fedora_match = int(m.group(1))
+                    break
+            if fedora_match:
+                processed = fedora_match
+            else:
+                out_dir = "fedora_to_rspace/sparql_out"
+                if os.path.isdir(out_dir):
+                    processed = len([f for f in os.listdir(out_dir) if f.endswith(".ttl")])
         else:
-            out_dir = "fedora_to_rspace/sparql_out" if "fedora" in phase_name else "rspace_to_omekas"
-            if os.path.isdir(out_dir):
-                processed = len([f for f in os.listdir(out_dir) if f.endswith(".ttl")])
+            processed = inserted + updated + attached
+
+        if result.returncode != 0:
+            errors["ReturnCode"] += 1
+            logging.error(f"{phase_name} exited with code {result.returncode}")
+
     except Exception as e:
         errors[type(e).__name__] += 1
         logging.exception(f"Error during {phase_name}")
-    finally:
-        elapsed = time.perf_counter() - start_time
-        current, peak = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+
+    elapsed = time.perf_counter() - start_time
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
 
     avg_time = elapsed / processed if processed > 0 else 0
     throughput = processed / elapsed if elapsed > 0 else 0
@@ -70,10 +111,14 @@ def measure_performance(phase_name: str, extra_args=""):
         "errors": sum(errors.values()),
         "error_types": dict(errors),
         "throughput": round(throughput, 2),
-        "avg_time_per_res": round(avg_time, 3)
+        "avg_time_per_res": round(avg_time, 3),
+        "inserted_items": inserted,
+        "updated_items": updated,
+        "attached_media": attached,
+        "skipped_media": skipped,
     }
 
-    logging.info(f"Phase {phase_name} completed -a> {metrics}")
+    logging.info(f"Phase {phase_name} completed -> {metrics}")
     return metrics
 
 # CSV Writer
@@ -95,18 +140,19 @@ if __name__ == "__main__":
     # Extra args per phase (same as your manual CLI usage)
     fedora_extra = (
         "--fedora-base https://datavault.ficlit.unibo.it/repo/rest "
-        "--sparql-endpoint http://localhost:10215/blazegraph/namespace/kb/sparql "
-        "--root-path UBOBU/MICROFILM/UBO8306198/402164/ "
-        "--rules-file E:\\Workspace\\Ficlit-ETL\\workflows\\fedora_to_rspace\\rules.yaml "
-        "--out-dir E:\\Workspace\\Ficlit-ETL\\workflows\\fedora_to_rspace\\sparql_out "
+        "--sparql-endpoint http://137.204.64.40:10215/blazegraph/namespace/kb/sparql "
+        "--root-path UBOBU/MICROFILM/UBO8306198/402146/ "
+        "--rules-file rules.yaml "
+        "--out-dir sparql_out "
         "--named-graph http://datavault.ficlit.unibo.it/graph/microfilm "
-        "--images-dir E:\\Workspace\\Ficlit-ETL\\researchspace-docker\\researchspace\\data\\images\\file "
-        "--username fedoraAdmin --password fedoraAdmin "
-        "--chunk-size 5000 --max-resources 5 -v"
+        "--images-dir /home/tech/RSpace/researchspace/data/images/file "
+        "--username username --password password "
+        "--chunk-size 5000 --max-resources 100 -v"
     )
 
     rspace_extra = (
-        "--config-path rspace_to_omekas/config_lab.json "
+        "--rules-file rules_rs2os.yaml "
+        "--config-path rspace_to_omekas/config_lab_temp.json "
         "--max-resources 5 -v"
     )
 
